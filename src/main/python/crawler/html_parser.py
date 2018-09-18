@@ -76,11 +76,16 @@ class Link:
 
     return "{0}{1}".format(self.parent_url.geturl(), self.url.geturl())
 
+  def is_same_domain(self, url):
+    target_url = urlparse(url)
+    this_url = urlparse(self.get_url())
+    return this_url.hostname == target_url.hostname
+
   def __is_absolute_url(self):
     return self.url.netloc
 
   def __str__(self):
-    return self.__dict__
+    return str(self.__dict__)
 
   def __repr__(self):
     return str({"url": self.get_url(), "label": self.label, "uri": self.url.geturl()})

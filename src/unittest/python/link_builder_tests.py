@@ -1,23 +1,23 @@
 from crawler.html_parser import LinkBuilder, NoOpBuilder, Link
-import unittest
+from unittest import TestCase
 
-class LinkBuilderTest(unittest.TestCase):
+class LinkBuilderTest(TestCase):
 
   def test_create_link_obj(self):
-    lb = LinkBuilder()
+    lb = LinkBuilder("")
     lb.create_new("http://aurl.com")
     link = lb.build()
 
-    self.assertEquals(Link(url="http://aurl.com", label=""), link)
+    self.assertEquals(Link(url="http://aurl.com", label="", parent_url=""), link)
 
   def test_create_link_with_label(self):
-    lb = LinkBuilder()
+    lb = LinkBuilder("")
     link = lb.create_new("http://aurl.com").with_label("A Link")
     link = lb.build()
 
-    self.assertEquals(Link(url = "http://aurl.com", label="A Link"), link)
+    self.assertEquals(Link(url = "http://aurl.com", label="A Link", parent_url=""), link)
 
-class NoOpBuilderTest(unittest.TestCase):
+class NoOpBuilderTest(TestCase):
 
   def test_does_not_build_anything(self):
     nb = NoOpBuilder()
@@ -25,21 +25,21 @@ class NoOpBuilderTest(unittest.TestCase):
 
     self.assertIsNone(item)
 
-class LinkTest(unittest.TestCase):
+class LinkTest(TestCase):
 
-  def test_links_with_same_urls_labels_are_equal(self):
-    link = Link("http://thisurl.com", "A link")
-    another_link = Link("http://thisurl.com", "A link")
+  def test_links_with_same_urls_labels_parent_urls_are_equal(self):
+    link = Link(url="http://thisurl.com", label="A link", parent_url="http://anotherlink.com")
+    another_link = Link("http://thisurl.com", "A link", parent_url="http://anotherlink.com")
 
     self.assertEquals(another_link, link)
 
   def test_links_with_same_url_different_labels_are_unequal(self):
-    link = Link("http://thisurl.com", "A link")
-    another_link = Link("http://thisurl.com", "Something else")
+    link = Link("http://thisurl.com", "A link", parent_url="")
+    another_link = Link("http://thisurl.com", "Something else", parent_url="")
 
     self.assertNotEqual(another_link, link)
 
   def test_link_is_not_equal_another_non_link_obj(self):
-    link = Link("http://thisurl.com", "A link")
+    link = Link("http://thisurl.com", "A link", parent_url="")
 
     self.assertNotEqual({"url": "somethig"}, link)

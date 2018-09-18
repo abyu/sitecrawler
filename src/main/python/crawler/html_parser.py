@@ -3,8 +3,8 @@ from urllib.parse import urlparse
 
 class HtmlParser:
   
-  def parse(self, html_doc):
-    doc = HTMLLinkParser(NoOpBuilder(), LinkBuilder())
+  def parse(self, parent_url, html_doc,):
+    doc = HTMLLinkParser(NoOpBuilder(), LinkBuilder(parent_url))
     doc.feed(html_doc)
     doc.close()
     return doc
@@ -37,9 +37,10 @@ class HTMLLinkParser(HTMLParser):
 
 class LinkBuilder:
 
-  def __init__(self):
+  def __init__(self, parent_url):
     self.url = ""
     self.label = ""
+    self.parent_url = parent_url
 
   def create_new(self, url):
     self.url = url
@@ -50,7 +51,7 @@ class LinkBuilder:
     return self
 
   def build(self):
-    return Link(self.url, self.label)
+    return Link(self.url, self.label, self.parent_url)
 
 class NoOpBuilder:
 
@@ -64,12 +65,16 @@ class NoOpBuilder:
     return None
 
 class Link:
-  def __init__(self, url, label):
+  def __init__(self, url, label, parent_url):
     self.url = urlparse(url)
     self.label = label.strip()
+    self.parent_url = urlparse(parent_url)
 
   def __str__(self):
     return self.__dict__
+
+  def __repr__(self):
+    return str(self.__dict__)
 
   def __eq__(self, other):
     if isinstance(other, Link):

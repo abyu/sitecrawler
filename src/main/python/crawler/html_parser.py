@@ -71,10 +71,13 @@ class Link:
     self.parent_url = urlparse(parent_url)
 
   def get_url(self):
-    if (self.url.netloc):
+    if (self.__is_absolute_url()):
       return self.url.geturl()
 
     return "{0}{1}".format(self.parent_url.geturl(), self.url.geturl())
+
+  def __is_absolute_url(self):
+    return self.url.netloc
 
   def __str__(self):
     return self.__dict__

@@ -43,3 +43,17 @@ class LinkTest(TestCase):
     link = Link("http://thisurl.com", "A link", parent_url="")
 
     self.assertNotEqual({"url": "somethig"}, link)
+
+  def test_get_url_returns_the_url_string(self):
+    link = Link("http://thisurl.com", "A link", parent_url="")
+
+    url = link.get_url()
+
+    self.assertEquals("http://thisurl.com", url)
+
+  def test_get_url_returns_include_parent_url_for_a_relative_url(self):
+    link = Link("/something", "A link", parent_url="www.apage.com")
+
+    url = link.get_url()
+
+    self.assertEquals("www.apage.com/something", url)

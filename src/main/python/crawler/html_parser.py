@@ -70,11 +70,17 @@ class Link:
     self.label = label.strip()
     self.parent_url = urlparse(parent_url)
 
+  def get_url(self):
+    if (self.url.netloc):
+      return self.url.geturl()
+
+    return "{0}{1}".format(self.parent_url.geturl(), self.url.geturl())
+
   def __str__(self):
     return self.__dict__
 
   def __repr__(self):
-    return str(self.__dict__)
+    return str({"url": self.get_url(), "label": self.label, "uri": self.url.geturl()})
 
   def __eq__(self, other):
     if isinstance(other, Link):

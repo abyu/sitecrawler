@@ -1,4 +1,5 @@
 from html.parser import HTMLParser
+from urllib.parse import urlparse
 
 class HtmlParser:
   
@@ -20,7 +21,8 @@ class HTMLLinkParser(HTMLParser):
   def handle_starttag(self, tag, attrs):
     #TODO: Move to builder factory
     if(tag == "a"):
-      self.current_builder = self.link_builder.create_new(attrs[0][1])
+      attributes = dict(attrs)
+      self.current_builder = self.link_builder.create_new(attributes['href'])
 
   def handle_endtag(self, tag):
     item = self.current_builder.build()
@@ -48,7 +50,7 @@ class LinkBuilder:
     return self
 
   def build(self):
-    return {"url": self.url, "label": self.label}
+    return Link(self.url, self.label)
 
 class NoOpBuilder:
 
@@ -60,3 +62,16 @@ class NoOpBuilder:
 
   def build(self):
     return None
+
+class Link:
+  def __init__(self, url, label):
+    self.url = urlparse(url)
+    self.label = label.strip()
+
+  def __str__(self):
+    return self.__dict__
+
+  def __eq__(self, other):
+    if isinstance(other, Link):
+      return self.__dict__ == other.__dict__
+    return False

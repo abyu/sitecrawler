@@ -1,4 +1,5 @@
 from unittest import TestCase
+from crawler.spider import Spider
 
 class SpiderTest(TestCase):
 

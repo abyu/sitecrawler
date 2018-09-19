@@ -4,8 +4,22 @@ from crawler.urlfilter import SameDomainUrlFilter, DuplicateUrlFilter
 
 class Spider():
 
-  def __init__(self):
-    pass
+  def __init__(self, scraper, rules):
+    self.scraper = scraper
+    self.rules = rules
+
+  def scrape(self, url):
+    return self.__scrape_recursive(url, [])
+
+  def __scrape_recursive(self, url, scraped_urls):
+    if url in scraped_urls:
+      return None
+    links = self.scraper.scrape_links(url)
+    filtered_links = self.rules.apply_rules(links)
+    scraped_urls.append(url)
+    child_links = list(map(lambda link: self.__scrape_recursive(link.get_url(), scraped_urls), filtered_links))
+
+    return {"page_url": url, "child_links": [link for link in child_links if link]}
 
 class LinkScraper():
 

@@ -1,12 +1,79 @@
 from unittest import TestCase
 from mockito import when, mock, unstub
+from mockito.matchers import neq, ANY
 from crawler.spider import Spider, LinkScraper
 from crawler.link import Link
 
 class SpiderTest(TestCase):
 
-  def test_parse_all_links_in_page_for_the_given_url(self):
-    pass
+  def test_scrape_all_links_from_all_pages_in_same_domain_for_given_start_url(self):
+    link_scraper = mock()
+    crawler_rules = mock()
+    when(link_scraper).scrape_links("http://samplepage.com").thenReturn([Link(url="/about", label="About", parent_url="http://samplepage.com")])
+    when(link_scraper).scrape_links("http://samplepage.com/about").thenReturn([])
+    when(crawler_rules).apply_rules([Link(url="/about", label="About", parent_url="http://samplepage.com")]).thenReturn([Link(url="/about", label="About", parent_url="http://samplepage.com")])
+    when(crawler_rules).apply_rules([]).thenReturn([])
+    spider = Spider(link_scraper, crawler_rules)
+    links = spider.scrape("http://samplepage.com")
+    expected_links = {
+      "page_url": "http://samplepage.com",
+      "child_links": [
+        {
+          "page_url": "http://samplepage.com/about",
+          "child_links": []
+        }
+      ]
+    }
+
+    self.assertEquals(expected_links, links)
+
+  def test_scrape_ignores_links_that_fail_the_rules(self):
+    link_scraper = mock()
+    crawler_rules = mock()
+    same_domain_links1 = [Link(url="/about", label="About", parent_url="http://samplepage.com")]
+    when(link_scraper).scrape_links("http://samplepage.com").thenReturn(same_domain_links1)
+    when(link_scraper).scrape_links("http://samplepage.com/about").thenReturn([Link(url="http://anotherdoamin.com", label="External", parent_url="http://samplepage.com/about")])
+    when(link_scraper).scrape_links("http://anotherdoamin.com").thenReturn([Link(url="/anotherabout", label="External About", parent_url="http://anotherdoamin.com")])
+    when(link_scraper).scrape_links("http://anotherdoamin.com/anotherabout").thenReturn([])
+    when(crawler_rules).apply_rules(same_domain_links1).thenReturn(same_domain_links1)
+    when(crawler_rules).apply_rules(neq(same_domain_links1)).thenReturn([])
+
+    spider = Spider(link_scraper, crawler_rules)
+    links = spider.scrape("http://samplepage.com")
+    expected_links = {
+      "page_url": "http://samplepage.com",
+      "child_links": [
+        {
+          "page_url": "http://samplepage.com/about",
+          "child_links": []
+        }
+      ]
+    }
+
+    self.assertEquals(expected_links, links)
+
+  def test_scrape_do_not_scrape_same_url_again(self):
+    link_scraper = mock()
+    crawler_rules = mock()
+    same_domain_links1 = [Link(url="/about", label="About", parent_url="http://samplepage.com")]
+    same_domain_links_repeated = [Link(url="http://samplepage.com", label="Home", parent_url="http://samplepage.com/about")]
+    when(link_scraper).scrape_links("http://samplepage.com").thenReturn(same_domain_links1)
+    when(link_scraper).scrape_links("http://samplepage.com/about").thenReturn(same_domain_links_repeated)
+    when(crawler_rules).apply_rules(same_domain_links1).thenReturn(same_domain_links1)
+    when(crawler_rules).apply_rules(same_domain_links_repeated).thenReturn(same_domain_links_repeated)
+    spider = Spider(link_scraper, crawler_rules)
+    links = spider.scrape("http://samplepage.com")
+    expected_links = {
+      "page_url": "http://samplepage.com",
+      "child_links": [
+        {
+          "page_url": "http://samplepage.com/about",
+          "child_links": []
+        }
+      ]
+    }
+
+    self.assertEquals(expected_links, links)
 
 class LinkScraperTest(TestCase):
   def test_parse_all_links_in_page_for_the_given_url(self):

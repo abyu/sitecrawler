@@ -11,4 +11,5 @@ def initialize(project):
   project.set_property("verbose", True)
 
   project.build_depends_on('mock')
+  project.build_depends_on('mockito')
   project.depends_on("requests")

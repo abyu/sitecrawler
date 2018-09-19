@@ -1,5 +1,6 @@
 import unittest
-from crawler.html_parser import HtmlParser, Link
+from crawler.html_parser import HtmlParser
+from crawler.link import Link
 
 class HtmlParserTest(unittest.TestCase):
   
@@ -19,6 +20,14 @@ class HtmlParserTest(unittest.TestCase):
 
     self.assertEquals(1, len(links))
     self.assertEquals(Link(url="http://somelink.com", label="SomeLink", parent_url=parent_url), links[0])
+
+  def test_do_not_parse_a_link_with_no_href(self):
+    html_parser = HtmlParser()
+    parent_url = "http://parentlink.com"
+    parsed = html_parser.parse(parent_url, '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title></title></head><body><p>Some test<a id="link">SomeLink</a></p></body></html>')
+    links = parsed.get_links()
+
+    self.assertEquals(0, len(links))
 
   def test_parse_a_link_in_html_page_containing_the_parent_url(self):
     html_parser = HtmlParser()

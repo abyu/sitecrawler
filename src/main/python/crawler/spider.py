@@ -1,6 +1,9 @@
 from crawler.http_client import HTTPClient
 from crawler.html_parser import HtmlParser
 from crawler.urlfilter import SameDomainUrlFilter, DuplicateUrlFilter
+import logging
+
+LOGGER = logging.getLogger("crawler.spider")
 
 class Spider():
 
@@ -14,11 +17,13 @@ class Spider():
   def __scrape_recursive(self, url, scraped_urls):
     if url in scraped_urls:
       return None
+    LOGGER.info("Scraping for link on page {0}".format(url))
     links = self.scraper.scrape_links(url)
     filtered_links = self.rules.apply_rules(links)
     scraped_urls.append(url)
+    LOGGER.info("Found {0} links, scrapping futher".format(len(filtered_links)))
     child_links = list(map(lambda link: self.__scrape_recursive(link.get_url(), scraped_urls), filtered_links))
-
+    LOGGER.info("Done scrapping {0}".format(url))
     return {"page_url": url, "child_links": [link for link in child_links if link]}
 
 class LinkScraper():

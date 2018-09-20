@@ -18,6 +18,14 @@ class Link:
     this_url = urlparse(self.get_url())
     return this_url.hostname == target_url.hostname
 
+  def has_same_parent(self, url):
+    target_url = urlparse(url)
+    this_url = urlparse(self.get_url())
+    target_path_sections = set(target_url.path.split('/'))
+    this_path_sections = set(this_url.path.split('/'))
+    has_same_parent = this_path_sections & target_path_sections == target_path_sections
+    return self.is_same_domain(url) and has_same_parent
+
   def is_same_as(self, url):
     target_url = urlparse(url)
     this_url = urlparse(self.get_url())

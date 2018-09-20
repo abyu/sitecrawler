@@ -106,3 +106,33 @@ class LinkTest(TestCase):
     is_same = link.is_same_as("http://www.apage.com")
 
     self.assertFalse(is_same)
+
+  def test_url_has_parent_path_as_the_given_url(self):
+    link = Link("/microsite/about", "A link", parent_url="http://www.apage.com")
+    has_same_parent = link.has_same_parent("http://www.apage.com/microsite")
+
+    self.assertTrue(has_same_parent)
+
+  def test_url_with_deeper_path_has_parent_path_as_the_given_url(self):
+    link = Link("/microsite/blog/anotherplace/about/specific", "A link", parent_url="http://www.apage.com")
+    has_same_parent = link.has_same_parent("http://www.apage.com/microsite")
+
+    self.assertTrue(has_same_parent)
+
+  def test_url_parent_path_as_the_given_root_url(self):
+    link = Link("/microsite", "A link", parent_url="http://www.apage.com")
+    has_same_parent = link.has_same_parent("http://www.apage.com/")
+
+    self.assertTrue(has_same_parent)
+
+  def test_absolute_url_not_same_as_the_given_url(self):
+    link = Link("http://www.another.com/microsite", "A link", parent_url="")
+    has_same_parent = link.has_same_parent("http://www.apage.com/")
+
+    self.assertFalse(has_same_parent)
+
+  def test_url_does_not_have_same_parent_path_as_the_given_url(self):
+    link = Link("/microsite/about", "A link", parent_url="http://www.apage.com")
+    has_same_parent = link.has_same_parent("http://www.apage.com/anothermicrosite")
+
+    self.assertFalse(has_same_parent)

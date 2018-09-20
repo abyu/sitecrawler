@@ -1,5 +1,5 @@
 from unittest import TestCase
-from crawler.urlfilter import SameDomainUrlFilter, DuplicateUrlFilter
+from crawler.urlfilter import SameDomainUrlFilter, DuplicateUrlFilter, SameHierarcyUrlFilter
 from crawler.link import Link
 from crawler.urlfilter import CrawlerRules
 from mockito import mock, when
@@ -141,3 +141,26 @@ class CrawlerRulesTest(TestCase):
     filtered_links = rule.apply_rules(links)
 
     self.assertEquals(0, len(filtered_links))
+
+class SameHierarcyUrlFilterTest(TestCase):
+
+    def test_filter_urls_that_match_parent_path_with_given_url(self):
+        filter = SameHierarcyUrlFilter("http://www.somepage.com/microsite")
+        matching_link1 = Link(url='/microsite/privacy', label="Privacy", parent_url="http://www.somepage.com")
+        matching_link2 = Link(url='/microsite/blog/hello', label="Blog", parent_url="http://www.somepage.com")
+        non_matching_link = Link(url='/intl/de/policies/terms/', label="Terms", parent_url="http://www.somepage.com")
+
+        filtered_links = filter.filter_links([matching_link1, matching_link2, non_matching_link])
+
+        self.assertEquals(2, len(filtered_links))
+        self.assertCountEqual([matching_link1, matching_link2], filtered_links)
+
+    def test_return_empty_list_when_none_match(self):
+        filter = SameHierarcyUrlFilter("http://www.somepage.com/microsite")
+        non_matching_link1 = Link(url='/somethingelse/privacy', label="Privacy", parent_url="http://www.somepage.com")
+        non_matching_link2 = Link(url='/blog/hello', label="Blog", parent_url="http://www.somepage.com")
+        non_matching_link3 = Link(url='/intl/de/policies/terms/', label="Terms", parent_url="http://www.somepage.com")
+
+        filtered_links = filter.filter_links([non_matching_link1, non_matching_link2, non_matching_link3])
+
+        self.assertEquals(0, len(filtered_links))

@@ -3,7 +3,7 @@ from crawler.link import Link
 
 class HtmlParser:
   
-  def parse(self, parent_url, html_doc,):
+  def parse(self, parent_url, html_doc):
     doc = HTMLLinkParser(NoOpBuilder(), LinkBuilder(parent_url))
     doc.feed(html_doc)
     doc.close()

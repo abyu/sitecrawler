@@ -1,6 +1,6 @@
 from unittest import TestCase
 from mockito import when, mock, unstub
-from mockito.matchers import neq, ANY
+from mockito.matchers import neq, ANY, eq
 from crawler.spider import Spider, LinkScraper
 from crawler.link import Link
 
@@ -76,7 +76,7 @@ class SpiderTest(TestCase):
     self.assertEquals(expected_links, links)
 
 class LinkScraperTest(TestCase):
-  def test_parse_all_links_in_page_for_the_given_url(self):
+  def test_parse_all_links_using_links_tag_parser_in_page_for_the_given_url(self):
     page_url = "http://asamplepage.com"
     html_content = "An html page with links"
     page_links = [
@@ -85,10 +85,8 @@ class LinkScraperTest(TestCase):
     ]
     mock_client = mock()
     mock_parser = mock()
-    mock_document = mock()
     when(mock_client).get_html_page(page_url).thenReturn(html_content)
-    when(mock_parser).parse(page_url, html_content).thenReturn(mock_document)
-    when(mock_document).get_links().thenReturn(page_links)
+    when(mock_parser).parse(ANY, eq(html_content)).thenReturn(page_links)
     scraper = LinkScraper(mock_client, mock_parser)
 
     links = scraper.scrape_links(page_url)

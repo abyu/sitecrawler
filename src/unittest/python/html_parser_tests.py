@@ -1,86 +1,54 @@
 import unittest
 from crawler.html_parser import HtmlParser
 from crawler.link import Link
+from mockito import mock, verify, when, expect
 
 class HtmlParserTest(unittest.TestCase):
-  
-  def test_parse_html_page_with_no_links_return_empty_list(self):
+
+  def test_reset_to_tag_parser_default_builder_on_start(self):
+    mock_tag_parser = mock()
     html_parser = HtmlParser()
-    parent_url = "http://parentlink.com"
-    parsed = html_parser.parse(parent_url, '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title></title></head><body><p>Some test</p></body></html>')
-    links = parsed.get_links()
+    when(mock_tag_parser).reset().thenReturn(mock(), mock())
 
-    self.assertEquals(0, len(links))
+    html_parser.parse(mock_tag_parser, '<html></html>')
 
-  def test_parse_a_link_in_html_page(self):
+    verify(mock_tag_parser, times=2).reset()
+
+  def test_parse_call_given_tag_parser_on_tag_start(self):
+    mock_tag_parser = mock()
+    mock_no_op = mock()
+    when(mock_no_op).is_empty().thenReturn(True)
+    when(mock_tag_parser).parse('html', []).thenReturn(mock())
+    expect(mock_tag_parser, times=2).reset().thenReturn(mock_no_op)
     html_parser = HtmlParser()
-    parent_url = "http://parentlink.com"
-    parsed = html_parser.parse(parent_url, '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title></title></head><body><p>Some test<a href="http://somelink.com">SomeLink</a></p></body></html>')
-    links = parsed.get_links()
 
-    self.assertEquals(1, len(links))
-    self.assertEquals(Link(url="http://somelink.com", label="SomeLink", parent_url=parent_url), links[0])
+    html_parser.parse(mock_tag_parser, '<html></html>')
 
-  def test_do_not_parse_a_link_with_no_href(self):
+    verify(mock_tag_parser).parse('html', [])
+
+  def test_parse_do_not_call_tag_parser_on_inner_tag_start_when_a_tag_parse_is_in_progress(self):
+    mock_tag_parser = mock()
+    mock_no_op = mock()
+    mock_builder = mock()
+    when(mock_builder).is_empty().thenReturn(False)
+    when(mock_no_op).is_empty().thenReturn(True)
+    when(mock_tag_parser).parse('html', []).thenReturn(mock())
+    expect(mock_tag_parser, times=3).reset().thenReturn(mock_no_op)
     html_parser = HtmlParser()
-    parent_url = "http://parentlink.com"
-    parsed = html_parser.parse(parent_url, '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title></title></head><body><p>Some test<a id="link">SomeLink</a></p></body></html>')
-    links = parsed.get_links()
 
-    self.assertEquals(0, len(links))
+    html_parser.parse(mock_tag_parser, '<html><body></body></html>')
 
-  def test_parse_a_link_in_html_page_containing_the_parent_url(self):
+    verify(mock_tag_parser).parse('html', [])
+
+  def test_parse_reset_to_default_tag_builder_on_end_tag(self):
+    mock_tag_parser = mock()
+    mock_no_op = mock()
+    mock_builder = mock()
+    when(mock_no_op).is_empty().thenReturn(True)
+    when(mock_tag_parser).parse('html', []).thenReturn(mock())
+    expect(mock_tag_parser, times=2).reset().thenReturn(mock_no_op)
     html_parser = HtmlParser()
-    parent_url = "http://parentlink.com"
-    parsed = html_parser.parse(parent_url, '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title></title></head><body><p>Some test<a href="http://somelink.com">SomeLink</a></p></body></html>')
-    links = parsed.get_links()
 
-    self.assertEquals(1, len(links))
-    self.assertEquals(Link(url="http://somelink.com", label="SomeLink", parent_url=parent_url), links[0])
+    html_parser.parse(mock_tag_parser, '<html />')
 
-  def test_parse_a_link_ignoring_all_children_elements(self):
-    html_parser = HtmlParser()
-    parent_url = "http://parentlink.com"
-    parsed = html_parser.parse(parent_url, """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-      <html xmlns="http://www.w3.org/1999/xhtml">
-        <head><title></title></head>
-        <body>
-          <p>Some test<a href="http://somelink.com"><span>SomeLink</span></a></p>
-        </body>
-      </html>""")
-    links = parsed.get_links()
-
-    self.assertEquals(1, len(links))
-    self.assertEquals(Link(url="http://somelink.com", label="SomeLink", parent_url=parent_url), links[0])
-
-  def test_parse_multiple_links_in_html_page(self):
-    html_parser = HtmlParser()
-    parent_url = "http://parentlink.com"
-    parsed = html_parser.parse(parent_url, '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title></title></head><body><p>Some test<a href="http://somelink.com">SomeLink</a> and also <a href="http://anotherlink.com">AnotherLink</a></p></body></html>')
-    links = parsed.get_links()
-
-    self.assertEquals(2, len(links))
-    self.assertEquals(Link(url="http://somelink.com", label="SomeLink", parent_url=parent_url), links[0])
-    self.assertEquals(Link(url="http://anotherlink.com", label="AnotherLink", parent_url=parent_url), links[1])
-
-  def test_parse_multiple_links_on_different_levels_in_html_page(self):
-    html_parser = HtmlParser()
-    parent_url = "http://parentlink.com"
-    parsed = html_parser.parse(parent_url, """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-      <html xmlns="http://www.w3.org/1999/xhtml"><head><title></title></head>
-        <body>
-          <p>Some test<a href="http://somelink.com">SomeLink</a>
-          and also <a target="_blank" href="http://anotherlink.com">AnotherLink</a></p>
-          <div>
-            <p>There is some text here with a link in another div
-                <div><a href="http://adeeperlink.com">Deep</a></div>
-            </p>
-          </div>
-        </body>
-      </html>""")
-    links = parsed.get_links()
-
-    self.assertEquals(3, len(links))
-    self.assertEquals(Link(url="http://somelink.com", label="SomeLink", parent_url=parent_url), links[0])
-    self.assertEquals(Link(url="http://anotherlink.com", label="AnotherLink", parent_url=parent_url), links[1])
-    self.assertEquals(Link(url="http://adeeperlink.com", label="Deep", parent_url=parent_url), links[2])
+    verify(mock_tag_parser, times=2).reset()

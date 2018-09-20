@@ -1,5 +1,6 @@
 from crawler.http_client import HTTPClient
 from crawler.html_parser import HtmlParser
+from crawler.link_tag_parser import LinkTagParser, LinkBuilder, NoOpBuilder
 from crawler.urlfilter import SameDomainUrlFilter, DuplicateUrlFilter
 import logging
 
@@ -17,13 +18,16 @@ class Spider():
   def __scrape_recursive(self, url, scraped_urls):
     if url in scraped_urls:
       return None
+
     LOGGER.info("Scraping for link on page {0}".format(url))
     links = self.scraper.scrape_links(url)
     filtered_links = self.rules.apply_rules(links)
-    scraped_urls.append(url)
+
     LOGGER.info("Found {0} links, scrapping futher".format(len(filtered_links)))
+    scraped_urls.append(url)
     child_links = list(map(lambda link: self.__scrape_recursive(link.get_url(), scraped_urls), filtered_links))
     LOGGER.info("Done scrapping {0}".format(url))
+
     return {"page_url": url, "child_links": [link for link in child_links if link]}
 
 class LinkScraper():
@@ -33,10 +37,16 @@ class LinkScraper():
     self.html_parser = html_parser
 
   def scrape_links(self, url):
+    tag_parser = self.get_tag_parser(url)
     page_content = self.http_client.get_html_page(url)
     if page_content:
-      document = self.html_parser.parse(url, page_content)
-      return document.get_links()
+      return self.html_parser.parse(tag_parser, page_content)
     return []
+
+  def get_tag_parser(self, url):
+    link_builder = LinkBuilder(url)
+    no_op_builder = NoOpBuilder()
+
+    return LinkTagParser(link_builder, no_op_builder)
 
 

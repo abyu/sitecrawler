@@ -38,6 +38,21 @@ class HtmlParserTest(unittest.TestCase):
     self.assertEquals(1, len(links))
     self.assertEquals(Link(url="http://somelink.com", label="SomeLink", parent_url=parent_url), links[0])
 
+  def test_parse_a_link_ignoring_all_children_elements(self):
+    html_parser = HtmlParser()
+    parent_url = "http://parentlink.com"
+    parsed = html_parser.parse(parent_url, """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+      <html xmlns="http://www.w3.org/1999/xhtml">
+        <head><title></title></head>
+        <body>
+          <p>Some test<a href="http://somelink.com"><span>SomeLink</span></a></p>
+        </body>
+      </html>""")
+    links = parsed.get_links()
+
+    self.assertEquals(1, len(links))
+    self.assertEquals(Link(url="http://somelink.com", label="SomeLink", parent_url=parent_url), links[0])
+
   def test_parse_multiple_links_in_html_page(self):
     html_parser = HtmlParser()
     parent_url = "http://parentlink.com"

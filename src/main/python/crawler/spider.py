@@ -1,6 +1,6 @@
 from crawler.http_client import HTTPClient
 from crawler.html_parser import HtmlParser
-from crawler.link_tag_parser import LinkTagParser, LinkBuilder, NoOpBuilder
+from crawler.link_tag_parser import LinkTagParser, LinkBuilder
 from crawler.urlfilter import SameDomainUrlFilter, DuplicateUrlFilter
 import logging
 
@@ -47,8 +47,7 @@ class LinkScraper():
 
   def get_tag_parser(self, url):
     link_builder = LinkBuilder(url)
-    no_op_builder = NoOpBuilder()
 
-    return LinkTagParser(link_builder, no_op_builder)
+    return LinkTagParser(link_builder)
 
 

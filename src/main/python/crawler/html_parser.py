@@ -1,6 +1,6 @@
 from html.parser import HTMLParser
 from crawler.link import Link
-from crawler.link_tag_parser import LinkTagParser, LinkBuilder, NoOpBuilder
+from crawler.link_tag_parser import LinkTagParser, LinkBuilder
 import logging
 
 LOGGER = logging.getLogger("crawler.htmlparser")
@@ -11,23 +11,20 @@ class HtmlParser:
     def __init__(self, tag_parser):
       HTMLParser.__init__(self)
       self.tag_parser = tag_parser
-      self.current_builder = tag_parser.reset()
-      self.links = []
+      self.tags = []
 
     def handle_starttag(self, tag, attrs):
-      if self.current_builder.is_empty():
-        self.current_builder = self.tag_parser.parse(tag, attrs)
+      self.tag_parser.create_transaction(tag, attrs)
 
     def handle_endtag(self, tag):
-      item = self.current_builder.build()
-      self.current_builder = self.tag_parser.reset()
-      self.links.append(item) if item else None
+      item = self.tag_parser.commit(tag)
+      self.tags.append(item) if item else None
 
     def handle_data(self, data):
-      self.current_builder.with_label(data)
+      self.tag_parser.add_content(data)
 
     def get_tags(self):
-      return self.links
+      return self.tags
 
   def parse(self, tag_parser, html_doc):
     doc = self._HTMLParser(tag_parser)

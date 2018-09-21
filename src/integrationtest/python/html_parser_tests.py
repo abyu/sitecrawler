@@ -1,10 +1,10 @@
 import unittest
 from crawler.html_parser import HtmlParser
-from crawler.link_tag_parser import LinkTagParser, LinkBuilder, NoOpBuilder
+from crawler.link_tag_parser import LinkTagParser, LinkBuilder
 from crawler.link import Link
 
 parent_url = "http://parentlink.com"
-links_parser = LinkTagParser(LinkBuilder(parent_url), NoOpBuilder())
+links_parser = LinkTagParser(LinkBuilder(parent_url))
 html_parser = HtmlParser()
 
 class HtmlParserTest(unittest.TestCase):

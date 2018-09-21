@@ -1,28 +1,38 @@
 from crawler.link import Link
 
 class LinkTagParser():
-  def __init__(self, link_builder, no_op_builder):
+  def __init__(self, link_builder):
     self.link_builder = link_builder
-    self.no_op_builder = no_op_builder
+    self.current_builder = None
   
-  def parse(self, tag, attrs):
-    attributes = self.validated_attributes(attrs)
-    if(self.can_parse(tag) and attributes):
-      return self.link_builder.create_new(attributes['href'])
+  def create_transaction(self, tag, attrs):
+    if (not self.__transaction_exists()):
+      attributes = self.__validated_attributes(attrs)
+      if(self.can_parse(tag) and attributes):
+        self.current_builder = self.link_builder.create_new(attributes['href'])
 
-    return self.no_op_builder
+  def add_content(self, content):
+    if self.__transaction_exists():
+      self.current_builder.with_label(content)
+
+  def commit(self, tag):
+    if self.__transaction_exists():
+      link = self.current_builder.build()
+      self.current_builder = None
+      return link
+    return None
 
   def can_parse(self, tag):
     return tag == "a"
 
-  def validated_attributes(self, attrs):
+  def __validated_attributes(self, attrs):
     attributes = dict(attrs)
     if 'href' in attributes:
       return attributes
     return None
 
-  def reset(self):
-    return self.no_op_builder
+  def __transaction_exists(self):
+    return self.current_builder
 
 class LinkBuilder:
 
@@ -39,22 +49,6 @@ class LinkBuilder:
     self.label = label
     return self
 
-  def is_empty(self):
-    return False
-
   def build(self):
     return Link(self.url, self.label, self.parent_url)
 
-class NoOpBuilder:
-
-  def create_new(self, url):
-    return self
-
-  def with_label(self, label):
-    return self
-
-  def build(self):
-    return None
-
-  def is_empty(self):
-    return True

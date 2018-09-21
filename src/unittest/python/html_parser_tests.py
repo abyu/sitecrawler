@@ -5,50 +5,37 @@ from mockito import mock, verify, when, expect
 
 class HtmlParserTest(unittest.TestCase):
 
-  def test_reset_to_tag_parser_default_builder_on_start(self):
+  def test_parse_create_parse_transaction_on_given_tag_parser_on_tag_start(self):
     mock_tag_parser = mock()
-    html_parser = HtmlParser()
-    when(mock_tag_parser).reset().thenReturn(mock(), mock())
-
-    html_parser.parse(mock_tag_parser, '<html></html>')
-
-    verify(mock_tag_parser, times=2).reset()
-
-  def test_parse_call_given_tag_parser_on_tag_start(self):
-    mock_tag_parser = mock()
-    mock_no_op = mock()
-    when(mock_no_op).is_empty().thenReturn(True)
-    when(mock_tag_parser).parse('html', []).thenReturn(mock())
-    expect(mock_tag_parser, times=2).reset().thenReturn(mock_no_op)
     html_parser = HtmlParser()
 
     html_parser.parse(mock_tag_parser, '<html></html>')
 
-    verify(mock_tag_parser).parse('html', [])
+    verify(mock_tag_parser).create_transaction('html', [])
 
-  def test_parse_do_not_call_tag_parser_on_inner_tag_start_when_a_tag_parse_is_in_progress(self):
+  def test_parse_add_content_to_given_tag_parser_on_data(self):
     mock_tag_parser = mock()
-    mock_no_op = mock()
-    mock_builder = mock()
-    when(mock_builder).is_empty().thenReturn(False)
-    when(mock_no_op).is_empty().thenReturn(True)
-    when(mock_tag_parser).parse('html', []).thenReturn(mock())
-    expect(mock_tag_parser, times=3).reset().thenReturn(mock_no_op)
     html_parser = HtmlParser()
 
-    html_parser.parse(mock_tag_parser, '<html><body></body></html>')
+    html_parser.parse(mock_tag_parser, '<html>Something</html>')
 
-    verify(mock_tag_parser).parse('html', [])
+    verify(mock_tag_parser).add_content('Something')
 
-  def test_parse_reset_to_default_tag_builder_on_end_tag(self):
+  def test_parse_return_items_received_from_tag_parser_transaction_commits(self):
     mock_tag_parser = mock()
-    mock_no_op = mock()
-    mock_builder = mock()
-    when(mock_no_op).is_empty().thenReturn(True)
-    when(mock_tag_parser).parse('html', []).thenReturn(mock())
-    expect(mock_tag_parser, times=2).reset().thenReturn(mock_no_op)
     html_parser = HtmlParser()
+    created_element = {"aKey": "aValue"}
+    when(mock_tag_parser).commit('html').thenReturn(created_element)
 
-    html_parser.parse(mock_tag_parser, '<html />')
+    tags = html_parser.parse(mock_tag_parser, '<html />')
 
-    verify(mock_tag_parser, times=2).reset()
+    self.assertCountEqual([created_element], tags)
+
+  def test_parse_ignore_nones_received_from_tag_parser_transaction_commits(self):
+    mock_tag_parser = mock()
+    html_parser = HtmlParser()
+    when(mock_tag_parser).commit('html').thenReturn(None)
+
+    tags = html_parser.parse(mock_tag_parser, '<html />')
+
+    self.assertEqual(0, len(tags))

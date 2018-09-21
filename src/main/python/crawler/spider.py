@@ -12,8 +12,10 @@ class Spider():
     self.scraper = scraper
     self.rules = rules
 
-  def scrape(self, url):
-    return self.__scrape_recursive(url, [])
+  def scrape(self, url, results_writer):
+    scrape_results = self.__scrape_recursive(url, [])
+    results_writer.write(scrape_results)
+    return scrape_results
 
   def __scrape_recursive(self, url, scraped_urls):
     if url in scraped_urls:

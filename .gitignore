@@ -2,4 +2,5 @@ env
 __pycache__
 target
 .DS_Store
-
+results
+*.log

@@ -12,9 +12,8 @@ import os
 
 LOGGER = logging.getLogger("crawler.spider_test")
 class SpiderTest(unittest.TestCase):
-  def i_test_scrape_url_write_results_to_a_file(self):
+  def ignore_test_scrape_url_write_results_to_a_file(self):
     url_to_scrape = "https://www.webscraper.io/test-sites/e-commerce/allinone"
-    # url_to_scrape = "https://monzo.com"
     service = SpiderService()
 
     time_start = datetime.now().timestamp()
@@ -22,7 +21,6 @@ class SpiderTest(unittest.TestCase):
     time_end = datetime.now().timestamp()
 
     LOGGER.info("Time taken to scrape: {0}".format(time_end - time_start))
-    print("Time taken to scrape: {0}".format(time_end - time_start))
     file_created = os.path.exists(results['results_file'])
 
     self.assertTrue(file_created)

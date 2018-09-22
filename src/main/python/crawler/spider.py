@@ -13,7 +13,7 @@ class Spider():
     self.rules = rules
 
   def scrape(self, url, results_writer):
-    scrape_results = self.__scrape_recursive(url, [])
+    scrape_results = self.__scrape_recursive(url, set())
     results_writer.write(scrape_results)
     return scrape_results
 
@@ -26,7 +26,7 @@ class Spider():
     filtered_links = self.rules.apply_rules(links)
 
     LOGGER.info("Found {0} links, scrapping futher".format(len(filtered_links)))
-    scraped_urls.append(url)
+    scraped_urls.add(url)
     child_links = list(map(lambda link: self.__scrape_recursive(link.get_url(), scraped_urls), filtered_links))
     LOGGER.info("Done scrapping {0}".format(url))
 
@@ -49,5 +49,3 @@ class LinkScraper():
     link_builder = LinkBuilder(url)
 
     return LinkTagParser(link_builder)
-
-

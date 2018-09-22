@@ -41,7 +41,7 @@ class Link:
     return str(self.__dict__)
 
   def __repr__(self):
-    return str({"url": self.get_url(), "label": self.label, "uri": self.url.geturl()})
+    return str({"url": self.get_url(), "label": self.label, "uri": self.url.geturl(), "parent": self.parent_url.geturl()})
 
   def __eq__(self, other):
     if isinstance(other, Link):

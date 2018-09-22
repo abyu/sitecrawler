@@ -8,14 +8,23 @@ from datetime import datetime
 
 class SpiderService():
 
-  def scrape_url(self, url_to_scrape):
-    file_name = self.generate_file_name(url_to_scrape)
+  def scrape_url(self, url_to_scrape, output_dir):
+    file_name = "{0}/{1}".format(output_dir, self.generate_file_name(url_to_scrape))
     writer = self.get_filter_writer(file_name)
     
     spider = self.get_spider(url_to_scrape)
     results = spider.scrape(url_to_scrape, writer)
 
     return {"results": results, "results_file": file_name}
+
+  def scrape_url_p(self, url_to_scrape, output_dir):
+    file_name = "{0}/{1}".format(output_dir, self.generate_file_name(url_to_scrape))
+    writer = self.get_filter_writer(file_name)
+    
+    spider = self.get_spider(url_to_scrape)
+    results = spider.scrape_p(url_to_scrape, writer)
+
+    return file_name
 
   def get_spider(self, url_to_scrape):
     scraper = self.get_link_scraper()

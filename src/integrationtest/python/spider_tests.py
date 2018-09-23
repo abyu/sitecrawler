@@ -25,12 +25,12 @@ class SpiderTest(unittest.TestCase):
 
     self.assertTrue(file_created)
 
-  def ignore_test_scrape_url_write_results_to_a_file_parellel(self):
+  def test_scrape_url_write_results_to_a_file_parellel(self):
     url_to_scrape = "https://www.webscraper.io/test-sites/e-commerce/allinone"
     service = SpiderService()
 
     time_start = datetime.now().timestamp()
-    results = service.scrape_url_parellel(url_to_scrape, "results", 10)
+    results = service.scrape_url_parallel(url_to_scrape, "results", 10)
     time_end = datetime.now().timestamp()
 
     LOGGER.info("Time taken to scrape: {0}".format(time_end - time_start))

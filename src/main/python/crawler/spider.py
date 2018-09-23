@@ -5,8 +5,7 @@ from crawler.http_client import HTTPClient
 from crawler.html_parser import HtmlParser
 from crawler.link_tag_parser import LinkTagParser, LinkBuilder
 from crawler.urlfilter import SameDomainUrlFilter, DuplicateUrlFilter
-from crawler.parellel import ParellerRunner, TaskAction
-
+from crawler.parallel import ParallerRunner, TaskAction, QueueMessage
 
 LOGGER = logging.getLogger("crawler.spider")
 
@@ -36,39 +35,43 @@ class Spider():
 
     return {"page_url": url, "child_links": [link for link in child_links if link]}
 
-  def scrape_parellel(self, url, results_writer, no_of_runners):
-    pr = ParellerRunner(no_of_runners)
-    pr.seed_input(url)
+  def scrape_parallel(self, url, results_writer, no_of_runners):
+    pr = ParallerRunner(no_of_runners)
+    input_message = self.get_queue_message_with(data = url)
+    pr.seed_input(input_message)
     pr.setup_workers(self.scrape_task)
     pr.setup_aggregator(self.aggregate_task, results_writer)
     pr.await_completion()
 
   def aggregate_task(self, task_item, in_queue, accumulator):
-    if task_item == 'TERMINATE':
+    if task_item.is_terminate_message():
       return TaskAction.TERMINATE, accumulator
 
     visited_url = accumulator['visited_url']
     results = accumulator['results']
-    link = task_item
+    link = task_item.data
     url = link.get_url()
     if not(url in visited_url):
       visited_url.add(url)
       results.append(link)
-      in_queue.put(url)
+      in_queue.put(self.get_queue_message_with(data=url))
     return TaskAction.CONTINUE, {'visited_url': visited_url, 'results': results}
 
-  def scrape_task(self, url, out_queue):
-    if url == 'TERMINATE':
+  def scrape_task(self, task_item, out_queue):
+    if task_item.is_terminate_message():
       return TaskAction.TERMINATE
-
+    url = task_item.data
     LOGGER.info("Scraping for link on page {0}".format(url))
     links = self.scraper.scrape_links(url)
     filtered_links = self.rules.apply_rules(links)
     LOGGER.info("Found {0} links, scrapping futher".format(len(filtered_links)))
     for link in filtered_links:
-        out_queue.put(link)
+        out_queue.put(self.get_queue_message_with(data = link))
 
     return TaskAction.CONTINUE
+
+  def get_queue_message_with(self, data):
+    return QueueMessage(task_action=TaskAction.CONTINUE, data=data)
 
 
 class LinkScraper():

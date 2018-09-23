@@ -23,7 +23,7 @@ def start_up(url, runners, output_dir):
   print("Crawling for {0}, with {1} runners".format(url, runners))
   service = SpiderService()
   timestamp_start = int(datetime.now().timestamp())
-  output_file = service.scrape_url_parellel(url, output_dir, runners)
+  output_file = service.scrape_url_parallel(url, output_dir, runners)
   timestamp_end = int(datetime.now().timestamp())
 
   total_time = timestamp_end - timestamp_start

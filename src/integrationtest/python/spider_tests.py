@@ -34,7 +34,7 @@ class SpiderTest(unittest.TestCase):
     time_end = datetime.now().timestamp()
 
     LOGGER.info("Time taken to scrape: {0}".format(time_end - time_start))
-    file_created = os.path.exists(results['results_file'])
+    file_created = os.path.exists(results)
 
     self.assertTrue(file_created)
 

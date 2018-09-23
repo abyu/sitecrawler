@@ -5,7 +5,8 @@ from crawler.http_client import HTTPClient
 from crawler.html_parser import HtmlParser
 from crawler.link_tag_parser import LinkTagParser, LinkBuilder
 from crawler.urlfilter import SameDomainUrlFilter, DuplicateUrlFilter
-from crawler.parellel import ParellerRunner
+from crawler.parellel import ParellerRunner, TaskAction
+
 
 LOGGER = logging.getLogger("crawler.spider")
 
@@ -38,45 +39,37 @@ class Spider():
   def scrape_parellel(self, url, results_writer, no_of_runners):
     pr = ParellerRunner(no_of_runners)
     pr.seed_input(url)
-    pr.setup_workers(self.scrape_worker)
-    pr.setup_aggregator(self.aggregator, results_writer)
+    pr.setup_workers(self.scrape_task)
+    pr.setup_aggregator(self.aggregate_task, results_writer)
     pr.await_completion()
 
-  def aggregator(self, in_queue, out_queue, results_writer):
-    visited_url = set()
-    results = []
-    while True:
-      task_item = out_queue.get()
-      if task_item == 'TERMINATE':
-        LOGGER.info("Visited {0}".format(list(visited_url)))
-        results_writer.write(results)
-        return
-      link = task_item
-      url = link.get_url()
-      if not(url in visited_url):
-        visited_url.add(url)
-        results.append(link)
-        in_queue.put(url)
-      out_queue.task_done()
-   
-  def scrape_worker(self, in_queue, out_queue, scrape_progress):
-    while True:
-      task_item = in_queue.get(True)
-      if task_item == 'TERMINATE':
-        LOGGER.info("TERMINATING")
-        in_queue.task_done()
-        return
-      url = task_item
-      LOGGER.info("Scraping for link on page {0}".format(url))
-      scrape_progress.put("Scrape for {0}".format(url))
-      links = self.scraper.scrape_links(url)
-      filtered_links = self.rules.apply_rules(links)
-      LOGGER.info("Found {0} links, scrapping futher".format(len(filtered_links)))
-      for link in filtered_links:
+  def aggregate_task(self, task_item, in_queue, accumulator):
+    if task_item == 'TERMINATE':
+      return TaskAction.TERMINATE, accumulator
+
+    visited_url = accumulator['visited_url']
+    results = accumulator['results']
+    link = task_item
+    url = link.get_url()
+    if not(url in visited_url):
+      visited_url.add(url)
+      results.append(link)
+      in_queue.put(url)
+    return TaskAction.CONTINUE, {'visited_url': visited_url, 'results': results}
+
+  def scrape_task(self, url, out_queue):
+    if url == 'TERMINATE':
+      return TaskAction.TERMINATE
+
+    LOGGER.info("Scraping for link on page {0}".format(url))
+    links = self.scraper.scrape_links(url)
+    filtered_links = self.rules.apply_rules(links)
+    LOGGER.info("Found {0} links, scrapping futher".format(len(filtered_links)))
+    for link in filtered_links:
         out_queue.put(link)
-      scrape_progress.get()
-      scrape_progress.task_done()
-      in_queue.task_done()
+
+    return TaskAction.CONTINUE
+
 
 class LinkScraper():
 

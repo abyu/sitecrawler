@@ -73,7 +73,6 @@ class Spider():
   def get_queue_message_with(self, data):
     return QueueMessage(task_action=TaskAction.CONTINUE, data=data)
 
-
 class LinkScraper():
 
   def __init__(self, http_client, html_parser):

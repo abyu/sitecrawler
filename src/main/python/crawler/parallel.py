@@ -66,9 +66,8 @@ class ParallerRunner():
   def scrape_worker(self):
     while True:
       task_item = self.in_queue.get(True)
-      url = task_item
-      self.scrape_progress.put("Scrape for {0}".format(url))
-      task_action = self.worker_task(url, self.out_queue)
+      self.scrape_progress.put("Scrape for {0}".format(task_item.data))
+      task_action = self.worker_task(task_item, self.out_queue)
       self.scrape_progress.get()
       self.scrape_progress.task_done()
       self.in_queue.task_done()

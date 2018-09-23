@@ -11,3 +11,6 @@
   - `./run.py <url> <number_of_workers> <output_directory>` to scrape the given url
      - Scrape results get saved into a timestamped file inside the given output directory
      - Example: `./run.py https://www.webscraper.io/test-sites/e-commerce/allinone/ 20 results`
+
+### Ignored test
+  - UnIgnore integration tests in `src/integrationtest/python/spider_tests.py` remove 'ignore_' from the method names to run a crawler integration test on a sample url

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from crawler.service import SpiderService
 from datetime import datetime
 import argparse

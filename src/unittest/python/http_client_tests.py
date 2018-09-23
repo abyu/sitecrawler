@@ -40,3 +40,14 @@ class HTTPClientTest(TestCase):
 
     self.assertIsNone(page_content)
 
+  @patch('requests.get')
+  def test_get_html_page_ignore_enconding_info_in_content_type(self, mock_get):
+    mock_response = Mock()
+    mock_response.text = "<html><body>Some html text</body></html>"
+    mock_response.status_code = 200
+    mock_response.headers = {"Content-Type": "text/html; charset=UTF-8"}
+    mock_get.return_value = mock_response
+    client = HTTPClient()
+    page_content = client.get_html_page("http://www.something.com")
+
+    self.assertEquals("<html><body>Some html text</body></html>", page_content)

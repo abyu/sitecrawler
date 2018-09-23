@@ -35,8 +35,8 @@ class Spider():
 
     return {"page_url": url, "child_links": [link for link in child_links if link]}
 
-  def scrape_parellel(self, url, results_writer):
-    pr = ParellerRunner(20)
+  def scrape_parellel(self, url, results_writer, no_of_runners):
+    pr = ParellerRunner(no_of_runners)
     pr.seed_input(url)
     pr.setup_workers(self.scrape_worker)
     pr.setup_aggregator(self.aggregator, results_writer)

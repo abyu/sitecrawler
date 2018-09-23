@@ -1,6 +1,10 @@
 import logging
+import logging.config
+import os
+import sys
 
 def initialize_logger():
-  logging.basicConfig(filename="crawler.log", level=logging.INFO)
+  if os.path.exists('logging.conf'):
+    logging.config.fileConfig('logging.conf')
 
 initialize_logger()

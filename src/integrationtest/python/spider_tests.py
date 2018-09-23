@@ -30,7 +30,7 @@ class SpiderTest(unittest.TestCase):
     service = SpiderService()
 
     time_start = datetime.now().timestamp()
-    results = service.scrape_url_parellel(url_to_scrape, "results")
+    results = service.scrape_url_parellel(url_to_scrape, "results", 10)
     time_end = datetime.now().timestamp()
 
     LOGGER.info("Time taken to scrape: {0}".format(time_end - time_start))

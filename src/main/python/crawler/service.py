@@ -17,12 +17,12 @@ class SpiderService():
 
     return {"results": results, "results_file": file_name}
 
-  def scrape_url_parellel(self, url_to_scrape, output_dir):
+  def scrape_url_parellel(self, url_to_scrape, output_dir, runners):
     file_name = "{0}/{1}".format(output_dir, self.generate_file_name(url_to_scrape))
     writer = self.get_filter_writer(file_name)
     spider = self.get_spider(url_to_scrape)
 
-    results = spider.scrape_parellel(url_to_scrape, writer)
+    results = spider.scrape_parellel(url_to_scrape, writer, runners)
 
     return file_name
 

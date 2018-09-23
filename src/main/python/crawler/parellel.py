@@ -31,7 +31,7 @@ class ParellerRunner():
     if self.aggregator:
       self.aggregator.start()
     else:
-      LOGGER.warn("Aggregator not started, did it set it up?")
+      LOGGER.warning("Aggregator not started, was it set it up?")
     LOGGER.info("All jobs started")
 
   def wait_for_completion(self):
